@@ -14,7 +14,9 @@ from mcp.server import Server
 from mcp.types import Tool, TextContent
 from mcp.server.stdio import stdio_server
 
-from .encoders import morse, braille
+from .encoders import morse, braille, sstv
+from .decoders import sstv as sstv_decoder
+import base64
 
 # Create server instance
 server = Server("sensory")
@@ -131,6 +133,84 @@ async def list_tools() -> list[Tool]:
                 "required": ["input", "from_format", "to_format"]
             }
         ),
+        # SSTV Tools - "Een 7B model krijgt opeens ogen"
+        Tool(
+            name="sstv_encode_text",
+            description="Encode text to SSTV audio (Robot36/Martin/Scottie). Returns base64 WAV. Multi-modal bridge for small LLMs!",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "text": {"type": "string", "description": "Text to encode into image then SSTV audio"},
+                    "mode": {
+                        "type": "string",
+                        "enum": ["robot36", "robot8bw", "robot24bw", "martin1", "martin2", "scottie1", "scottie2"],
+                        "default": "robot36",
+                        "description": "SSTV mode (robot36 is fastest)"
+                    }
+                },
+                "required": ["text"]
+            }
+        ),
+        Tool(
+            name="sstv_encode_ponskaart",
+            description="Create authenticated ponskaart (punch card) for McMurdo remote authentication via SSTV",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "user_id": {"type": "string", "description": "User identifier"},
+                    "auth_token": {"type": "string", "description": "Authentication token"},
+                    "command": {"type": "string", "description": "Command to execute remotely"},
+                    "mode": {
+                        "type": "string",
+                        "enum": ["robot36", "robot8bw", "robot24bw", "martin1", "martin2", "scottie1", "scottie2"],
+                        "default": "robot36",
+                        "description": "SSTV mode"
+                    }
+                },
+                "required": ["user_id", "auth_token", "command"]
+            }
+        ),
+        Tool(
+            name="sstv_modes",
+            description="List available SSTV modes with their specifications",
+            inputSchema={
+                "type": "object",
+                "properties": {},
+                "required": []
+            }
+        ),
+        # SSTV Decode - Complete the REFLUX loop!
+        Tool(
+            name="sstv_detect",
+            description="Detect if audio contains an SSTV signal. First step of REFLUX decode.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "audio_base64": {"type": "string", "description": "Base64 encoded WAV audio"}
+                },
+                "required": ["audio_base64"]
+            }
+        ),
+        Tool(
+            name="sstv_decoder_info",
+            description="Get SSTV decoder capabilities and REFLUX readiness status",
+            inputSchema={
+                "type": "object",
+                "properties": {},
+                "required": []
+            }
+        ),
+        Tool(
+            name="reflux_decode",
+            description="Complete REFLUX decode: SSTV Audio → Image → OCR → Text. Gives small LLMs 'eyes' via audio!",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "audio_base64": {"type": "string", "description": "Base64 encoded SSTV WAV audio"}
+                },
+                "required": ["audio_base64"]
+            }
+        ),
     ]
 
 
@@ -210,6 +290,106 @@ async def call_tool(name: str, arguments: dict) -> list[TextContent]:
             result = text
 
         return [TextContent(type="text", text=result)]
+
+    # SSTV Tools
+    elif name == "sstv_encode_text":
+        text = arguments["text"]
+        mode = arguments.get("mode", "robot36")
+        try:
+            audio_bytes = sstv.encode_text(text, mode)
+            audio_b64 = base64.b64encode(audio_bytes).decode()
+            result = {
+                "status": "success",
+                "mode": mode,
+                "text_length": len(text),
+                "audio_bytes": len(audio_bytes),
+                "audio_base64": audio_b64[:100] + "...[truncated]",
+                "full_audio_base64": audio_b64,
+                "note": "Multi-modal bridge: text -> image -> SSTV audio"
+            }
+            return [TextContent(type="text", text=json.dumps(result))]
+        except ImportError as e:
+            return [TextContent(type="text", text=json.dumps({
+                "status": "error",
+                "error": "pysstv not installed. Run: pip install mcp-server-sensory[sstv]"
+            }))]
+        except Exception as e:
+            return [TextContent(type="text", text=json.dumps({"status": "error", "error": str(e)}))]
+
+    elif name == "sstv_encode_ponskaart":
+        user_id = arguments["user_id"]
+        auth_token = arguments["auth_token"]
+        command = arguments["command"]
+        mode = arguments.get("mode", "robot36")
+        try:
+            audio_bytes = sstv.encode_ponskaart(user_id, auth_token, command, mode)
+            audio_b64 = base64.b64encode(audio_bytes).decode()
+            result = {
+                "status": "success",
+                "mode": mode,
+                "ponskaart": {
+                    "user": user_id,
+                    "command": command,
+                    "auth_prefix": auth_token[:8] + "..."
+                },
+                "audio_bytes": len(audio_bytes),
+                "full_audio_base64": audio_b64,
+                "note": "McMurdo authentication ponskaart - transmit via radio when network fails"
+            }
+            return [TextContent(type="text", text=json.dumps(result))]
+        except ImportError as e:
+            return [TextContent(type="text", text=json.dumps({
+                "status": "error",
+                "error": "pysstv not installed. Run: pip install mcp-server-sensory[sstv]"
+            }))]
+        except Exception as e:
+            return [TextContent(type="text", text=json.dumps({"status": "error", "error": str(e)}))]
+
+    elif name == "sstv_modes":
+        modes = sstv.get_available_modes() if hasattr(sstv, 'get_available_modes') else []
+        mode_info = {}
+        for m in modes:
+            info = sstv.get_mode_info(m) if hasattr(sstv, 'get_mode_info') else {}
+            mode_info[m] = info
+        result = {
+            "status": "success",
+            "available_modes": modes,
+            "mode_details": mode_info,
+            "note": "SSTV = Slow Scan Television. Used by ham radio operators to send images over audio."
+        }
+        return [TextContent(type="text", text=json.dumps(result, indent=2))]
+
+    # SSTV Decode / REFLUX tools
+    elif name == "sstv_detect":
+        audio_b64 = arguments["audio_base64"]
+        try:
+            audio_bytes = base64.b64decode(audio_b64)
+            result = sstv_decoder.detect_sstv_signal(audio_bytes)
+            return [TextContent(type="text", text=json.dumps(result, indent=2))]
+        except Exception as e:
+            return [TextContent(type="text", text=json.dumps({
+                "status": "error",
+                "error": str(e)
+            }))]
+
+    elif name == "sstv_decoder_info":
+        result = sstv_decoder.get_decoder_info()
+        result["concept"] = "REFLUX: Text → Image → SSTV Audio → Radio → Audio → Image → OCR → Text"
+        result["purpose"] = "Give 'eyes' to text-only LLMs via audio pathway"
+        return [TextContent(type="text", text=json.dumps(result, indent=2))]
+
+    elif name == "reflux_decode":
+        audio_b64 = arguments["audio_base64"]
+        try:
+            audio_bytes = base64.b64decode(audio_b64)
+            result = sstv_decoder.reflux_decode(audio_bytes)
+            return [TextContent(type="text", text=json.dumps(result, indent=2))]
+        except Exception as e:
+            return [TextContent(type="text", text=json.dumps({
+                "status": "error",
+                "error": str(e),
+                "note": "REFLUX decode failed. Check audio format (WAV, mono, 16-bit)"
+            }))]
 
     return [TextContent(type="text", text=f"Unknown tool: {name}")]
 

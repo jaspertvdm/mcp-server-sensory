@@ -4,8 +4,8 @@ build-backend = "hatchling.build"
 
 [project]
 name = "mcp-server-sensory"
-version = "0.1.0"
-description = "Multi-Sensory AI Communication - Morse, Braille, SSTV, Audio encoding for off-grid AI networks"
+version = "0.3.1"
+description = "Multi-Sensory AI Communication - Morse, Braille, SSTV/REFLUX encode+decode for off-grid AI networks. Complete sensory loop!"
 readme = "README.md"
 license = "AGPL-3.0-or-later"
 authors = [
@@ -17,13 +17,15 @@ keywords = [
     "morse",
     "braille",
     "sstv",
+    "reflux",
     "robot36",
     "ggwave",
     "off-grid",
     "ai-communication",
     "sensory",
     "humotica",
-    "mcmurdo"
+    "mcmurdo",
+    "multimodal"
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -42,12 +44,12 @@ dependencies = [
     "mcp>=1.0.0",
     "numpy>=1.24.0",
     "pillow>=10.0.0",
+    "pysstv>=0.5.0",
 ]
 
 [project.optional-dependencies]
 audio = ["sounddevice>=0.4.6", "scipy>=1.11.0"]
-sstv = ["pysstv>=0.5.0"]
-full = ["sounddevice>=0.4.6", "scipy>=1.11.0", "pysstv>=0.5.0"]
+full = ["sounddevice>=0.4.6", "scipy>=1.11.0"]
 
 [project.scripts]
 mcp-server-sensory = "mcp_server_sensory.server:main"
