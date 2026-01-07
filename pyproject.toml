@@ -56,8 +56,8 @@ mcp-server-sensory = "mcp_server_sensory.server:main"
 
 [project.urls]
 Homepage = "https://humotica.com"
-Documentation = "https://github.com/Humotica/mcp-server-sensory"
-Repository = "https://github.com/Humotica/mcp-server-sensory"
+Documentation = "https://github.com/jaspertvdm/mcp-server-sensory"
+Repository = "https://github.com/jaspertvdm/mcp-server-sensory"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/mcp_server_sensory"]
