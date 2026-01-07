@@ -4,8 +4,8 @@
     "jaspertvdm"
   ],
   "name": "Sensory",
-  "description": "Multi-sensory encoding - Morse, Braille, SSTV for off-grid AI",
+  "description": "Multi-Sensory AI Communication - Morse, Braille, SSTV/REFLUX for off-grid AI networks",
   "repository": "https://github.com/jaspertvdm/mcp-server-sensory",
-  "license": "MIT",
+  "license": "AGPL-3.0",
   "homepage": "https://humotica.com"
 }
