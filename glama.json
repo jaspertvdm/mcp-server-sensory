@@ -3,7 +3,7 @@
   "maintainers": [
     "jaspertvdm"
   ],
-  "name": "Sensory",
+  "name": "Humotica - Sensory",
   "description": "Multi-Sensory AI Communication - Morse, Braille, SSTV/REFLUX for off-grid AI networks",
   "repository": "https://github.com/jaspertvdm/mcp-server-sensory",
   "license": "AGPL-3.0",
