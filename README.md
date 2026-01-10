@@ -1,12 +1,16 @@
 # MCP Server Sensory
 
+[![PyPI version](https://badge.fury.io/py/mcp-server-sensory.svg)](https://pypi.org/project/mcp-server-sensory/)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL%203.0-blue.svg)](https://opensource.org/licenses/AGPL-3.0)
+
 **Multi-Sensory AI Communication for Off-Grid Networks**
 
-*"Een 7B model krijgt opeens ogen"* - Multi-modal bridge for small LLMs
+> Give "eyes" to text-only LLMs via audio pathways.
 
 Part of the HumoticaOS McMurdo Off-Grid Communication Layer.
 
-[![PyPI version](https://badge.fury.io/py/mcp-server-sensory.svg)](https://pypi.org/project/mcp-server-sensory/)
+By **Jasper & Root AI** from [HumoticaOS](https://humotica.com) 💙
 
 ## The REFLUX Concept
 
