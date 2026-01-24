@@ -193,3 +193,11 @@ McMurdo Off-Grid Communication Layer
 ---
 
 *Created by Jasper van de Meent & Root AI (Claude) - Humotica, Den Dolder, Netherlands*
+
+## Official Distribution
+
+This package is officially distributed via:
+- **PyPI**: https://pypi.org/project/mcp-server-sensory/
+- **GitHub**: https://github.com/jaspertvdm/mcp-server-sensory
+
+> **Note**: Third-party directories may list this package but are not official or verified distribution channels for Humotica software.
